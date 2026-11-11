@@ -16,8 +16,25 @@ return '<img src="'+src+'" alt="Reference photograph of '+name.replace(/"/g,'')+
 }
 function render(){let p=poses[index];el("count").textContent="Step "+(index+1)+" of "+poses.length;el("name").textContent=p[0];el("hint").textContent=p[2];el("poseArt").innerHTML=poseIllustration(p[0]);el("clock").textContent=fmt(remaining);el("progress").value=100*(1-remaining/p[1]);el("status").textContent=running?"Timer running":"Paused / ready";}
 function speak(){if(!el("voice").checked||!("speechSynthesis" in window))return;window.speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(poses[index][0]+". "+poses[index][2]);u.lang="en-US";u.rate=.87;window.speechSynthesis.speak(u)}
-function syncVideo(){let frame=el("yt"),box=el("video");if(index===0&&running){box.style.display="block";if(!frame.src||frame.src==="about:blank")frame.src="https://www.youtube.com/embed/K2ACdJrb48A?autoplay=1&playsinline=1&rel=0";}else{box.style.display="none";if(frame.getAttribute("src"))frame.removeAttribute("src")}}function setStep(i){index=Math.max(0,Math.min(poses.length-1,i));remaining=poses[index][1];syncVideo();render();speak()}
-function tick(t){if(running){if(!last)last=t;let dt=(t-last)/1000;if(dt>=1){let sec=Math.floor(dt);last+=sec*1000;remaining-=sec;if(remaining<=0){if(index===poses.length-1){running=false;remaining=0;stopMusic();syncVideo();el("status").textContent="Workout complete";}else{setStep(index+1)}}render()}}else last=0;requestAnimationFrame(tick)}
+let ytPlayer=null,ytReady=false,videoStarted=false,videoEnded=false;
+function onYouTubeIframeAPIReady(){ytReady=true;if(running&&index===0)syncVideo()}
+function syncVideo(){
+ const box=el("video"),frame=el("yt");
+ if(index===0&&running){
+  box.style.display="block";
+  if(!frame.getAttribute("src"))frame.src="https://www.youtube.com/embed/K2ACdJrb48A?enablejsapi=1&autoplay=1&playsinline=1&rel=0&origin="+encodeURIComponent(location.origin);
+  if(ytReady&&!ytPlayer){ytPlayer=new YT.Player("yt",{events:{onReady:e=>{if(running&&index===0)e.target.playVideo()},onStateChange:e=>{if(e.data===YT.PlayerState.PLAYING)videoStarted=true;if(e.data===YT.PlayerState.ENDED&&running&&index===0){videoEnded=true;setStep(1)}}}})}
+  else if(ytPlayer&&ytPlayer.playVideo)try{ytPlayer.playVideo()}catch(e){}
+ }else{
+  box.style.display="none";
+  if(ytPlayer&&ytPlayer.stopVideo)try{ytPlayer.stopVideo()}catch(e){}
+  if(frame&&frame.getAttribute("src"))frame.removeAttribute("src");
+  ytPlayer=null;
+ }
+}
+function setStep(i){index=Math.max(0,Math.min(poses.length-1,i));remaining=poses[index][1];syncVideo();render();speak()}
+function continueVideoWait(){el("status").textContent="Waiting for Radio Taiso video to finish…"}
+function tick(t){if(running){if(!last)last=t;let dt=(t-last)/1000;if(dt>=1){let sec=Math.floor(dt);last+=sec*1000;remaining-=sec;if(remaining<=0){if(index===0&&videoStarted&&!videoEnded){remaining=0;render();continueVideoWait();return}if(index===poses.length-1){running=false;remaining=0;stopMusic();syncVideo();el("status").textContent="Workout complete";}else{setStep(index+1)}}render()}}else last=0;requestAnimationFrame(tick)}
 function startAudio(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();gain=ctx.createGain();gain.gain.value=0;gain.connect(ctx.destination);[174.61,261.63,349.23].forEach((f,i)=>{let o=ctx.createOscillator();o.type="sine";o.frequency.value=f;o.connect(gain);o.start();osc.push(o)})}ctx.resume()}
 function music(on){musicOn=on;if(on){startAudio();gain.gain.setTargetAtTime(Number(el("vol").value)/100*.12,ctx.currentTime,.5)}else stopMusic();el("music").textContent="Music: "+(on?"On":"Off")}
 function stopMusic(){musicOn=false;if(gain&&ctx)gain.gain.setTargetAtTime(0,ctx.currentTime,.2);el("music").textContent="Music: Off"}
@@ -30,4 +47,5 @@ el("music").onclick=()=>music(!musicOn);
 el("vol").oninput=()=>{if(musicOn)music(true)};
 el("list").innerHTML=poses.map((p,i)=>"<li>"+(i+1)+". "+p[0]+" <small>("+fmt(p[1])+")</small></li>").join("");
 render();requestAnimationFrame(tick);
+const ytScript=document.createElement("script");ytScript.src="https://www.youtube.com/iframe_api";document.head.appendChild(ytScript);
 </script></body></html>
