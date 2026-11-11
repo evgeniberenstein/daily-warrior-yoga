@@ -22,8 +22,8 @@ function poseIllustration(name){
  else if(n.includes('prasarita'))[col,row]=[2,2];
  else if(n.includes('half moon'))[col,row]=[3,2];
  else return '';
- const x=[0,25,50,75,100][col],y=[0,50,100][row];
- return '<div role="img" aria-label="'+name+'" style="width:100%;aspect-ratio:1.07;background-image:url(assets/yoga-asanas.jpg);background-size:500% 300%;background-position:'+x+'% '+y+'%;background-repeat:no-repeat;border-radius:14px"></div><small>Original generated yoga pose reference · use spoken cues for alignment</small>';
+ const x=[0,25,50,75,100][col],y=[11,56,99][row];
+ return '<div role="img" aria-label="'+name+'" style="width:100%;aspect-ratio:1.07;background-image:url(assets/yoga-asanas.jpg);background-size:500% auto;background-position:'+x+'% '+y+'%;background-repeat:no-repeat;border-radius:14px"></div><small>Original generated yoga pose reference · use spoken cues for alignment</small>';
 }
 function render(){let p=poses[index];el("count").textContent="Step "+(index+1)+" of "+poses.length;el("name").textContent=p[0];el("hint").textContent=p[2];el("poseArt").style.display=index===0?"none":"block";el("poseArt").innerHTML=index===0?"":poseIllustration(p[0]);el("clock").textContent=fmt(remaining);el("progress").value=100*(1-remaining/p[1]);el("status").textContent=running?"Timer running":"Paused / ready";}
 function speak(){if(!el("voice").checked||!("speechSynthesis" in window))return;window.speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(poses[index][0]+". "+poses[index][2]);u.lang="en-US";u.rate=.87;window.speechSynthesis.speak(u)}
