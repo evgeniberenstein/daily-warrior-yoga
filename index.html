@@ -5,22 +5,14 @@ let index=0,remaining=poses[0][1],running=false,last=0,ctx=null,osc=[],gain=null
 const el=id=>document.getElementById(id),fmt=n=>String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0");
 
 function poseIllustration(name){
-const left=/Left|left/.test(name), flip=left?'translate(320 0) scale(-1 1)':'';
-const n=name.toLowerCase();let head=[160,65], torso=[[160,87],[160,150]],arms=[[[160,100],[112,112]],[[160,100],[208,112]]],legs=[[[160,150],[117,240]],[[160,150],[207,240]]];
-if(n.includes('crescent')||n.includes('warrior one')){head=[146,64];torso=[[146,86],[146,151]];arms=[[[146,94],[128,36]],[[146,94],[167,36]]];legs=[[[146,151],[98,225]],[[146,151],[244,233]]]}
-if(n.includes('warrior two')){head=[155,67];torso=[[155,89],[155,150]];arms=[[[155,100],[45,102]],[[155,100],[268,102]]];legs=[[[155,150],[91,230]],[[155,150],[253,235]]]}
-if(n.includes('side angle')){head=[118,109];torso=[[132,122],[176,156]];arms=[[[132,123],[91,184]],[[132,123],[209,37]]];legs=[[[176,156],[92,236]],[[176,156],[251,236]]]}
-if(n.includes('reverse warrior')){head=[143,80];torso=[[147,100],[177,153]];arms=[[[147,109],[105,37]],[[147,109],[235,162]]];legs=[[[177,153],[92,237]],[[177,153],[255,237]]]}
-if(n.includes('triangle')){head=[109,112];torso=[[127,128],[174,156]];arms=[[[127,128],[83,213]],[[127,128],[178,39]]];legs=[[[174,156],[79,239]],[[174,156],[265,239]]]}
-if(n.includes('pyramid')){head=[100,135];torso=[[116,146],[180,161]];arms=[[[116,146],[100,207]],[[116,146],[157,209]]];legs=[[[180,161],[93,236]],[[180,161],[257,236]]]}
-if(n.includes('warrior three')){head=[70,102];torso=[[92,112],[168,140]];arms=[[[92,112],[32,111]],[[92,112],[46,141]]];legs=[[[168,140],[167,243]],[[168,140],[278,119]]]}
-if(n.includes('half moon')){head=[106,120];torso=[[124,134],[169,151]];arms=[[[124,134],[126,37]],[[124,134],[93,218]]];legs=[[[169,151],[166,245]],[[169,151],[272,138]]]}
-if(n.includes('tree')){head=[158,65];torso=[[158,86],[158,153]];arms=[[[158,97],[135,36]],[[158,97],[182,36]]];legs=[[[158,153],[158,244]],[[158,153],[116,183],[157,193]]]}
-if(n.includes('goddess')){head=[158,60];torso=[[158,82],[158,153]];arms=[[[158,100],[92,86],[81,126]],[[158,100],[224,86],[235,126]]];legs=[[[158,153],[92,180],[73,236]],[[158,153],[224,180],[243,236]]]}
-if(n.includes('prasarita')){head=[158,199];torso=[[158,180],[158,129]];arms=[[[158,175],[113,225]],[[158,175],[202,225]]];legs=[[[158,129],[72,238]],[[158,129],[245,238]]]}
-if(n.includes('breathing')||n.includes('taiso')){head=[158,63];torso=[[158,86],[158,150]];arms=[[[158,98],[91,53]],[[158,98],[226,53]]];legs=[[[158,150],[126,241]],[[158,150],[193,241]]]}
-const path=pts=>'<polyline points="'+pts.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="#a8eac7" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>';
-return '<svg viewBox="0 0 320 265" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="width:100%;height:auto;background:#17292d;border-radius:16px"><path d="M35 248H285" stroke="#56776f" stroke-width="3"/><g transform="'+flip+'">'+path(torso)+arms.map(path).join('')+legs.map(path).join('')+'<circle cx="'+head[0]+'" cy="'+head[1]+'" r="18" fill="#a8eac7"/></g></svg><small>Pose illustration — use the spoken cues for alignment.</small>';
+const n=name.toLowerCase();let slug=null;
+if(n.includes('warrior one'))slug='warrior-1';
+else if(n.includes('warrior two'))slug='warrior-2';
+else if(n.includes('triangle')&&!n.includes('revolved')&&!n.includes('open'))slug='triangle';
+else if(n.includes('tree'))slug='tree';
+if(!slug)return '<div style="padding:24px;background:#17292d;border-radius:16px;text-align:center"><strong>Photo not yet available for this pose</strong><p>Follow the spoken alignment instructions above.</p></div>';
+const src='https://raw.githubusercontent.com/jreinjr/yoga-pose-photos/main/'+slug+'.jpg';
+return '<img src="'+src+'" alt="Reference photograph of '+name.replace(/"/g,'')+'" style="width:100%;max-height:300px;object-fit:contain;border-radius:16px;background:#17292d" loading="eager"><small>Reference photo; side shown may differ. Source: yoga-pose-photos (Wikimedia Commons, Creative Commons).</small>';
 }
 function render(){let p=poses[index];el("count").textContent="Step "+(index+1)+" of "+poses.length;el("name").textContent=p[0];el("hint").textContent=p[2];el("poseArt").innerHTML=poseIllustration(p[0]);el("clock").textContent=fmt(remaining);el("progress").value=100*(1-remaining/p[1]);el("status").textContent=running?"Timer running":"Paused / ready";}
 function speak(){if(!el("voice").checked||!("speechSynthesis" in window))return;window.speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(poses[index][0]+". "+poses[index][2]);u.lang="en-US";u.rate=.87;window.speechSynthesis.speak(u)}
