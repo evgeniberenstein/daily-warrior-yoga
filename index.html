@@ -43,28 +43,18 @@ const el=id=>document.getElementById(id),fmt=n=>String(Math.floor(n/60)).padStar
 function drawSequence(){el("list").innerHTML=config.map((a,i)=>'<li data-step="'+i+'"><div class="sequence-row"><button type="button" class="pose-link" data-step="'+i+'">'+a.name+'<small class="sanskrit-name">'+a.sanskrit+'</small></button><label class="duration-field"><input type="number" class="duration-input" data-duration="'+a.id+'" value="'+a.duration+'" min="5" max="900" step="5" aria-label="'+a.name+' duration in seconds"><small>sec'+(a.both?' once':' / side')+'</small></label><span class="drag-handle" data-drag="'+i+'" role="button" tabindex="0" aria-label="Drag to reorder '+a.name+'">⠿</span></div></li>').join("")}
 function rebuildWorkout(){const id=poses[index]?.[3],elapsed=poses[index]?.[1]-remaining;poses=makeWorkout();const match=poses.findIndex(p=>p[3]===id);index=match>=0?match:0;remaining=Math.max(0,poses[index][1]-(match>=0?elapsed:0));syncVideo();drawSequence();render()}
 function poseIllustration(name){
- const lower=name.toLowerCase();
- if(lower.includes("chair pose")||lower.includes("standing forward bend")){const file=lower.includes("chair pose")?"chair-pose.svg":"standing-forward-bend.svg";return '<img src="assets/'+file+'" alt="'+name+' yoga posture illustration" style="display:block;width:100%;height:auto;border-radius:14px;background:#fff">'}
-
  const n=name.toLowerCase();
- let col=0,row=0;
- if(n.includes('crescent'))[col,row]=[0,0];
- else if(n.includes('warrior one'))[col,row]=[1,0];
- else if(n.includes('warrior two'))[col,row]=[2,0];
- else if(n.includes('side angle'))[col,row]=[3,0];
- else if(n.includes('reverse warrior'))[col,row]=[4,0];
- else if(n.includes('revolved triangle'))[col,row]=[2,1];
- else if(n.includes('open triangle'))[col,row]=[3,1];
- else if(n.includes('triangle'))[col,row]=[0,1];
- else if(n.includes('pyramid'))[col,row]=[1,1];
- else if(n.includes('warrior three'))[col,row]=[4,1];
- else if(n.includes('tree'))[col,row]=[0,2];
- else if(n.includes('goddess'))[col,row]=[1,2];
- else if(n.includes('prasarita'))[col,row]=[2,2];
- else if(n.includes('half moon'))[col,row]=[3,2];
- else return '';
- const x=[0,25,50,75,100][col],y=[11,56,99][row];
- return '<div role="img" aria-label="'+name+'" style="width:100%;aspect-ratio:1.07;background-image:url(assets/yoga-asanas.jpg);background-size:500% auto;background-position:'+x+'% '+y+'%;background-repeat:no-repeat;border-radius:14px"></div><small>Original generated yoga pose reference · use spoken cues for alignment</small>';
+ const positions=[
+  ["crescent",0,0],["warrior one",1,0],["warrior two",2,0],["side angle",3,0],["reverse warrior",4,0],
+  ["revolved triangle",1,1],["triangle",5,0],["pyramid",0,1],["warrior three",3,1],
+  ["tree",4,1],["goddess",5,1],["prasarita",0,2],["half moon",1,2],
+  ["chair pose",2,2],["standing forward bend",3,2]
+ ];
+ const match=positions.find(p=>n.includes(p[0]));
+ if(!match)return "";
+ const col=match[1],row=match[2];
+ const x=[0,20,40,60,80,100][col],y=[12,57,98][row];
+ return '<div role="img" aria-label="'+name+'" style="width:100%;aspect-ratio:1.05;background-image:url(assets/yoga-reference.jpg);background-size:600% auto;background-position:'+x+'% '+y+'%;background-repeat:no-repeat;border-radius:14px;background-color:#eef3f5"></div><small>Illustration from your uploaded yoga reference poster</small>';
 }
 function render(){let p=poses[index];el("count").textContent="Step "+(index+1)+" of "+poses.length;el("name").textContent=p[0];const activeAsana=asanas.find(a=>p[3]===a.id+"-right"||p[3]===a.id+"-left"||p[3]===a.id+"-both");el("sanskrit").textContent=activeAsana?activeAsana.sanskrit:"";el("hint").textContent=p[2];el("poseArt").style.display=(index===0||poses[index][3]==="finish")?"none":"block";el("poseArt").innerHTML=(index===0||poses[index][3]==="finish")?"":poseIllustration(p[0]);el("clock").textContent=fmt(remaining);el("progress").value=100*(1-remaining/p[1]);el("status").textContent=running?"Timer running":"Paused / ready";document.querySelectorAll("#list li").forEach((li,i)=>li.classList.toggle("current",config[i]?.id===poses[index]?.[3]?.split("-")[0]));}
 function availableEnglishVoices(){if(!("speechSynthesis" in window))return [];return window.speechSynthesis.getVoices().filter(v=>/^en([-_]|$)/i.test(v.lang))}
